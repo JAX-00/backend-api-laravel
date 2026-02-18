@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
@@ -46,4 +47,20 @@ class PostController extends Controller
 
      return response()->json($post);
     }
+
+public function destroy(Post $post)
+{
+    // Cek kepemilikan post
+    if ($post->user_id !== Auth::id()) {
+        return response()->json([
+            'message' => 'Forbidden'
+        ], 403);
+    }
+
+    $post->delete();
+
+    return response()->json([
+        'message' => 'Post deleted successfully'
+    ], 200);
+}
 }
