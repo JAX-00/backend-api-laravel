@@ -15,12 +15,29 @@ class PostController extends Controller
      */
     public function index(Request $request)
     {
-        $posts = Post::where('user_id', $request->user()->id)
-            ->with('user')
-            ->latest()
-            ->paginate(5);
+   $query = Post::query();
 
-        return PostResource::collection($posts);
+    // 🔐 hanya post milik user login
+    $query->where('user_id', $request->user()->id);
+
+    // 🔍 SEARCH (optional)
+    if ($request->filled('search')) {
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+              ->orWhere('content', 'like', "%{$search}%");
+        });
+    }
+
+    // 📄 pagination
+    $posts = $query
+        ->with('user')
+        ->latest()
+        ->paginate(5);
+
+    // 🎁 response rapi
+    return PostResource::collection($posts);
     }
 
     /**
